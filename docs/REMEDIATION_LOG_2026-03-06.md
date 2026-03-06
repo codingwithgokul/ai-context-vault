@@ -40,6 +40,16 @@
   - local retrieval viability from indexed summaries
   - automatic cleanup of test artifact after run
 
+5. **`save.py` sync semantics hardened (explicit behavior)**
+- `scripts/save.py` now syncs to Blob only when:
+  - `--blob` is passed, or
+  - `SAVE_AUTO_BLOB_SYNC=1` is set intentionally.
+- Removed implicit Blob sync trigger based only on Blob config presence.
+- Added explicit runtime message when sync is skipped:
+  - `Blob sync skipped. Use --blob or set SAVE_AUTO_BLOB_SYNC=1.`
+- Added `.env.example` documentation for `SAVE_AUTO_BLOB_SYNC`.
+- Updated README daily workflow and `save.py` behavior description.
+
 ## 2. Validation Performed
 
 1. Local validation
@@ -74,14 +84,14 @@
 
 ## 5. Open Hardening Items
 
-1. Make sync semantics in `save.py` fully explicit where behavior is currently config-driven.
+1. Add branch protection so CI smoke is required before merge to `main`.
+2. Add one focused regression test for `search.py` field fallback behavior.
 
 ## 6. Next Action (agreed)
 
-**Next step:** harden `save.py` sync semantics so behavior is explicit and predictable.
+**Next step:** enforce CI as a merge gate in repository settings.
 
 Planned change:
-1. `save.py` should only sync to Blob when explicitly requested (`--blob`), not implicitly because config exists.
-2. Add an explicit opt-in env flag for automatic behavior (for users who want current behavior), e.g. `SAVE_AUTO_BLOB_SYNC=1`.
-3. Keep CI smoke stable with local-only defaults.
-4. Update README and this log after implementation.
+1. Require `CI Smoke` workflow on pull requests to `main`.
+2. Keep current local smoke scope (`py_compile`, `workflow_smoke`, local `reindex`).
+3. Add fallback test coverage for search field mapping in a follow-up PR.

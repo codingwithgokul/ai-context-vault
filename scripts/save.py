@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -27,6 +28,10 @@ def _read_input(args: argparse.Namespace) -> str:
     if not sys.stdin.isatty():
         return sys.stdin.read().strip()
     raise SystemExit("No input found. Use --text, --input, or pipe.")
+
+
+def _env_flag(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def main() -> int:
@@ -74,11 +79,20 @@ def main() -> int:
         if not ok:
             return 2
 
-    if args.blob or blob_configured():
+    auto_blob = _env_flag("SAVE_AUTO_BLOB_SYNC")
+    do_blob = args.blob or auto_blob
+
+    if do_blob:
+        if not blob_configured():
+            print("Blob ERROR: Blob sync requested but Azure Blob config is missing.")
+            print("Set AZURE_STORAGE_ACCOUNT/AZURE_STORAGE_KEY or disable blob sync.")
+            return 3
         ok, msg = push_summaries_to_blob()
         print(("Blob OK: " if ok else "Blob ERROR: ") + msg)
         if not ok:
             return 3
+    else:
+        print("Blob sync skipped. Use --blob or set SAVE_AUTO_BLOB_SYNC=1.")
 
     return 0
 

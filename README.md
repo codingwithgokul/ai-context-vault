@@ -238,6 +238,9 @@ python3 scripts/create_index.py
 # 1) Put SHORT session notes into a file (not full raw chat transcript)
 python3 scripts/save.py --input session_notes.txt --source chatgpt --topic auto
 
+# ☁️ Optional Blob sync for this single save run
+python3 scripts/save.py --input session_notes.txt --source chatgpt --topic auto --blob
+
 # 📋 Resume a session (compact context output)
 python3 scripts/resume.py
 
@@ -250,6 +253,11 @@ python3 scripts/search.py "what are the compliance requirements?"
 # 🧩 Legacy/manual extraction (optional fallback)
 python3 scripts/extract_yamls.py --input chat.txt --type requirements
 ```
+
+Behavior change (2026-03-06):
+- `save.py` does not auto-sync to Blob by default anymore.
+- If you want Blob upload for a single run, add `--blob`.
+- If you want legacy auto-sync behavior, set `SAVE_AUTO_BLOB_SYNC=1` in `.env`.
 
 ---
 
@@ -311,10 +319,15 @@ Pipeline:
 2. Build summary bullets    → decisions + next steps
 3. LLM summary (3-tier):    Claude Haiku → Azure OpenAI → local rules
 4. Save YAML artifact       → session_summaries/*
-5. Optional/implicit Blob sync when configured
+5. Optional Blob sync (explicit `--blob`, or `SAVE_AUTO_BLOB_SYNC=1`)
 
 Token cost: ~$0.001 with Claude Haiku, ~$0 with local rules
 ```
+
+`save.py` sync behavior:
+- default: local save only (no Blob sync)
+- one-off Blob sync: pass `--blob`
+- keep old auto-sync behavior: set `SAVE_AUTO_BLOB_SYNC=1` in `.env`
 
 ### `resume.py` – Compact Session Context 📋
 

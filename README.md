@@ -167,8 +167,8 @@ sequenceDiagram
 
     Note over User,Azure: 🟢 START NEW SESSION
     User->>Scripts: python3 resume.py
-    Scripts->>Scripts: Parse YAML artifacts → progress dashboard
-    Scripts-->>User: 📋 ~600 token context (clipboard)
+    Scripts->>Scripts: Parse YAML artifacts → recency-based snapshot
+    Scripts-->>User: 📋 compact context (clipboard)
     User->>AI: Paste + continue working
 
     Note over User,Azure: 💬 WORK IN SESSION
@@ -258,6 +258,10 @@ Behavior change (2026-03-06):
 - `save.py` does not auto-sync to Blob by default anymore.
 - If you want Blob upload for a single run, add `--blob`.
 - If you want legacy auto-sync behavior, set `SAVE_AUTO_BLOB_SYNC=1` in `.env`.
+- `resume.py` now uses recency-first selection by default:
+  - `RESUME_WINDOW_HOURS=24`
+  - fallback to at least `RESUME_MIN_ITEMS=3`
+  - capped at `RESUME_MAX_ITEMS=10`
 
 ---
 
@@ -336,12 +340,16 @@ Input:  Session summary artifacts
 Output: Compact context block for next chat
 
 Pipeline:
-1. Read latest session summaries
+1. Read recency-first summaries (24h window by default)
 2. Build concise status snapshot
 3. Print + store in `.memory/resume_context.txt`
 
 Token cost: $0 (local parsing only)
 ```
+
+`resume.py` selection behavior:
+- default: last `24h`, minimum `3` entries, maximum `10` entries
+- override via `.env`: `RESUME_WINDOW_HOURS`, `RESUME_MIN_ITEMS`, `RESUME_MAX_ITEMS`
 
 ### `reindex.py` – Azure Cloud Sync ☁️
 

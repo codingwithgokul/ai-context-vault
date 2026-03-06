@@ -50,6 +50,14 @@
 - Added `.env.example` documentation for `SAVE_AUTO_BLOB_SYNC`.
 - Updated README daily workflow and `save.py` behavior description.
 
+6. **`resume.py` selection changed to recency-first policy**
+- `scripts/workflow_lib.py` now selects summaries for resume output by:
+  - last `RESUME_WINDOW_HOURS` (default `24`)
+  - fallback to at least `RESUME_MIN_ITEMS` (default `3`)
+  - cap at `RESUME_MAX_ITEMS` (default `10`)
+- README updated to document new selection behavior.
+- `.env.example` updated with optional resume tuning settings.
+
 ## 2. Validation Performed
 
 1. Local validation

@@ -10,7 +10,7 @@ import re
 import ssl
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 from urllib import request
@@ -516,6 +516,77 @@ def write_index(index: dict) -> Path:
     return INDEX_PATH
 
 
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(value, minimum)
+
+
+def _parse_created_at(value: str) -> datetime | None:
+    if not value:
+        return None
+    normalized = value.strip()
+    if not normalized:
+        return None
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _select_resume_summaries(summaries: list[dict]) -> tuple[list[dict], int, int, int]:
+    window_hours = _env_int("RESUME_WINDOW_HOURS", 24)
+    min_items = _env_int("RESUME_MIN_ITEMS", 3)
+    max_items = _env_int("RESUME_MAX_ITEMS", 10)
+    if min_items > max_items:
+        min_items = max_items
+
+    now_utc = datetime.now(timezone.utc)
+    cutoff = now_utc - timedelta(hours=window_hours)
+
+    ranked: list[tuple[dict, datetime, int]] = []
+    for index, summary in enumerate(summaries):
+        created = _parse_created_at(str(summary.get("created_at", "")))
+        if created is None:
+            created = datetime.fromtimestamp(0, tz=timezone.utc)
+        ranked.append((summary, created, index))
+
+    ranked.sort(key=lambda item: (item[1], -item[2]), reverse=True)
+
+    selected: list[dict] = []
+    selected_keys: set[str] = set()
+
+    def key_for(summary: dict, index: int) -> str:
+        return str(summary.get("id") or summary.get("path") or f"idx-{index}")
+
+    for summary, created, index in ranked:
+        if created >= cutoff:
+            selected.append(summary)
+            selected_keys.add(key_for(summary, index))
+
+    if len(selected) < min_items:
+        for summary, _, index in ranked:
+            key = key_for(summary, index)
+            if key in selected_keys:
+                continue
+            selected.append(summary)
+            selected_keys.add(key)
+            if len(selected) >= min_items:
+                break
+
+    return selected[:max_items], window_hours, min_items, max_items
+
+
 def build_resume_text(index: dict) -> str:
     lines = []
     lines.append("Here is my current project status - use this as context:")
@@ -525,12 +596,17 @@ def build_resume_text(index: dict) -> str:
     lines.append(f"Indexed artifacts: {len(index.get('files', []))}")
     lines.append("")
 
+    summaries = index.get("session_summaries", [])
+    if not isinstance(summaries, list):
+        summaries = []
+    selected, window_hours, min_items, max_items = _select_resume_summaries(summaries)
+
     lines.append("Latest session summaries:")
-    summaries = index.get("session_summaries", [])[:8]
-    if not summaries:
+    lines.append(f"(selection: last {window_hours}h, min {min_items}, max {max_items})")
+    if not selected:
         lines.append("- No session summaries available yet.")
     else:
-        for s in summaries:
+        for s in selected:
             topic = s.get("topic", "general")
             title = s.get("title", "Session Summary")
             bullets = s.get("summary_bullets", [])

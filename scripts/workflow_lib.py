@@ -604,8 +604,14 @@ def _summary_docs_for_azure(index: dict, schema: dict) -> tuple[list[dict], str]
 
     title_field = "title" if "title" in by_name else ("name" if "name" in by_name else "")
     topic_field = "topic" if "topic" in by_name else ("category" if "category" in by_name else "")
+    path_field = "path" if "path" in by_name else ""
     source_field = "source_path" if "source_path" in by_name else ("source" if "source" in by_name else "")
     created_field = "created_at" if "created_at" in by_name else ("timestamp" if "timestamp" in by_name else "")
+    doc_type_field = "doc_type" if "doc_type" in by_name else ""
+    chapter_field = "chapter" if "chapter" in by_name else ""
+    blob_name_field = "blob_name" if "blob_name" in by_name else ""
+    tags_field = "tags" if "tags" in by_name else ""
+    eu_ai_act_refs_field = "eu_ai_act_refs" if "eu_ai_act_refs" in by_name else ""
     repo_scope_field = "repo_scope" if "repo_scope" in by_name else ""
     summary_type_field = "summary_type" if "summary_type" in by_name else ""
     source_repo_field = "source_repo" if "source_repo" in by_name else ""
@@ -614,16 +620,48 @@ def _summary_docs_for_azure(index: dict, schema: dict) -> tuple[list[dict], str]
     for s in index.get("session_summaries", []):
         sid = s.get("id") or _slugify(s.get("path", "summary"))
         bullets = s.get("summary_bullets", [])
-        content = "\n".join(f"- {b}" for b in bullets)
+        decisions = s.get("decisions", []) or []
+        next_steps = s.get("next_steps", []) or []
+        path_value = s.get("path", "")
+        topic_value = s.get("topic", "general")
+        tags_value = s.get("tags", []) or []
+        chapter_value = (path_value.split("/", 1)[0] if path_value else "") or s.get("target_folder", "")
+        eu_ai_act_refs = s.get("eu_ai_act_refs", []) or []
+
+        content_parts = []
+        if s.get("title"):
+            content_parts.append(str(s["title"]))
+        if bullets:
+            content_parts.extend(f"- {b}" for b in bullets)
+        if decisions:
+            content_parts.append("Decisions:")
+            content_parts.extend(f"- {d}" for d in decisions)
+        if next_steps:
+            content_parts.append("Next steps:")
+            content_parts.extend(f"- {n}" for n in next_steps)
+        content = "\n".join(content_parts).strip()
+
         doc = {"@search.action": "mergeOrUpload", key_field: sid, content_field: content}
         if title_field:
             doc[title_field] = s.get("title", "Session Summary")
         if topic_field:
-            doc[topic_field] = s.get("topic", "general")
+            doc[topic_field] = topic_value
+        if path_field:
+            doc[path_field] = path_value
         if source_field:
-            doc[source_field] = s.get("path", "")
+            doc[source_field] = path_value
         if created_field:
             doc[created_field] = s.get("created_at", "")
+        if doc_type_field:
+            doc[doc_type_field] = "session_summary"
+        if chapter_field:
+            doc[chapter_field] = chapter_value
+        if blob_name_field:
+            doc[blob_name_field] = path_value
+        if tags_field:
+            doc[tags_field] = ", ".join(str(tag) for tag in tags_value if str(tag).strip())
+        if eu_ai_act_refs_field:
+            doc[eu_ai_act_refs_field] = ", ".join(str(ref) for ref in eu_ai_act_refs if str(ref).strip())
         if repo_scope_field:
             doc[repo_scope_field] = s.get("repo_scope", "")
         if summary_type_field:

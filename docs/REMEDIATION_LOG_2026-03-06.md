@@ -29,6 +29,17 @@
   - `docs/session_summaries/20260224_223753_3-quellen-verifikation-expose-vs-diagramm-vs-usps.yaml`
   - `docs/session_summaries/20260225_201514_related-work-analyse-vergleichsmatrix.yaml`
 
+4. **Hardening stage started (automation)**
+- Added CI workflow `/.github/workflows/ci-smoke.yml` with:
+  - syntax check (`python3 -m py_compile scripts/*.py`)
+  - workflow-shape smoke test (`python3 scripts/workflow_smoke.py`)
+  - local reindex smoke (`python3 scripts/reindex.py --no-azure --no-blob`)
+- Added `scripts/workflow_smoke.py` to validate:
+  - local save path (`save_session_summary`)
+  - local index/resume refresh
+  - local retrieval viability from indexed summaries
+  - automatic cleanup of test artifact after run
+
 ## 2. Validation Performed
 
 1. Local validation
@@ -59,6 +70,4 @@
 
 ## 5. Open Hardening Items
 
-1. Add lightweight CI checks (`py_compile` + local reindex smoke).
-2. Add one workflow-shape smoke test for `save -> reindex -> search`.
-3. Make sync semantics in `save.py` fully explicit where behavior is currently config-driven.
+1. Make sync semantics in `save.py` fully explicit where behavior is currently config-driven.

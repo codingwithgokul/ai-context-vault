@@ -1,8 +1,8 @@
 # 🏦 AI Context Vault
 
-**I improved my AI workflow by combining research-backed best practices into a personal toolkit.**
+**A reusable toolkit for turning AI sessions into structured, searchable project artifacts.**
 
-> Working on a thesis with multiple AI models (Claude, ChatGPT, Gemini), I faced a consistent problem: **unstructured artifacts, isolated knowledge, and no audit trail**. I researched how established practices could solve this, implemented them, and built this toolkit. It's not an enterprise product — it's a research-backed engineering pattern designed for knowledge-intensive AI projects.
+> This repo packages a workflow I originally built in a thesis setting into a reusable toolkit. The core problem was stable across projects: **unstructured artifacts, isolated knowledge, and no audit trail**. The result is not a generic chat wrapper, but a research-informed engineering pattern for knowledge-intensive AI work.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
@@ -19,7 +19,7 @@
 - Integrated robust fallback summarization paths (Claude -> Azure OpenAI -> local rules).
 - Productionized multi-repo isolation with dedicated Blob containers to prevent cross-project context mixing.
 
-## The Problem I Faced
+## The Problem
 
 Working on complex AI projects across multiple models and sessions, I discovered **3 concrete problems** that modern AI platforms don't solve:
 
@@ -49,7 +49,7 @@ My knowledge was **fragmented** – no shared layer across models.
 
 ### PD3: 📜 No Compliance-Ready Documentation
 
-For my thesis (especially with EU AI Act context), I needed:
+For regulated or research-heavy AI work, I needed:
 - Versioned artifacts with timestamps and sources
 - Traceable decision chains
 - Structured evidence
@@ -98,7 +98,7 @@ This is **not just "save the chat."** It's:
 
 ## 🧭 Multi-Repo Production Setup
 
-This toolkit is used together with a dedicated thesis-content repository:
+This toolkit can be used together with a dedicated content repository:
 
 - `ai-context-vault` -> reusable workflow toolkit (scripts + RAG workflow)
 - `genaiops-thesis` -> domain content and chapter artifacts
@@ -244,7 +244,7 @@ python3 scripts/resume.py
 # ☁️ Sync all artifacts to Azure
 python3 scripts/reindex.py --azure
 
-# 🔍 Search across ALL sessions
+# 🔍 Search across this repo's summaries (default)
 python3 scripts/search.py "what are the compliance requirements?"
 
 # 🧩 Legacy/manual extraction (optional fallback)
@@ -279,14 +279,17 @@ ai-context-vault/
 │   ├── search.py           # 🔍 Cross-session RAG query
 │   ├── extract_yamls.py    # 🧩 Legacy/manual extraction
 │   └── create_index.py     # 🏗️ Azure Search index setup
+├── docs/
+│   ├── ARCHITECTURE.md     # Design decisions
+│   ├── ACADEMIC_VALIDATION.md  # Research backing
+│   └── session_summaries/  # Current toolkit summaries
 ├── examples/
+│   ├── session_summaries/  # Example summary artifacts
 │   └── yaml_templates/     # Example YAML templates
 │       ├── requirement_template.yaml
 │       ├── gate_template.yaml
 │       └── chapter_state_template.yaml
-├── docs/
-│   ├── ARCHITECTURE.md     # Design decisions
-│   └── ACADEMIC_VALIDATION.md  # Research backing
+├── .memory/                # Generated local index + resume context
 ├── .env.example
 ├── requirements.txt
 ├── LICENSE
@@ -308,7 +311,7 @@ Pipeline:
 2. Build summary bullets    → decisions + next steps
 3. LLM summary (3-tier):    Claude Haiku → Azure OpenAI → local rules
 4. Save YAML artifact       → session_summaries/*
-5. Optional Blob sync       → only changed/new files
+5. Optional/implicit Blob sync when configured
 
 Token cost: ~$0.001 with Claude Haiku, ~$0 with local rules
 ```
@@ -347,16 +350,16 @@ Token cost: $0 (Azure SDK only)
 
 ```
 Input:  Natural language question
-Output: Grounded answer from ALL your sessions
+Output: Grounded answer from indexed summaries, repo-scoped by default
 
 Pipeline:
-1. Azure AI Search (Top-8 across all sessions)
+1. Azure AI Search (Top-8 within the repo scope by default)
 2. Assemble context from retrieved artifacts
 3. Send to Claude API with references
 4. Return answer with [1], [2] citations
 
-vs. Claude Projects: searches within ONE project
-vs. This: searches across ALL sessions, chapters, types
+Default behavior: filter by `source_repo` for clean isolation in a shared index
+Optional behavior: widen search scope if you intentionally want cross-repo retrieval
 
 Token cost: ~$0.01-0.05 per query
 ```

